@@ -1,60 +1,73 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Minimal Django File Upload Example</title>
+    <title>Drum Transcription Demo</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'drumtranscription/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'drumtranscription/main.css' %}"/>
 </head>
 
-
-<script>function Hide(check) {
-    if (check.checked) {
-        document.getElementById('a').style.display = 'none';
-        document.getElementById('b').style.display = '';
-    } else {
-        document.getElementById('a').style.display = '';
-        document.getElementById('b').style.display = 'none'
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script>
+    function Hide(check) {
+        if (check.checked) {
+            document.getElementById('a').style.display = 'none';
+            document.getElementById('b').style.display = '';
+        } else {
+            document.getElementById('a').style.display = '';
+            document.getElementById('b').style.display = 'none';
+        }
     }
-}
+    $(document).ready(function () {
+        if (document.check_form.check.value == "True") {
+            document.getElementById('checker').checked = true;
+        } else {
+            document.getElementById('checker').checked = false;
+        }
+        Hide(document.getElementById('checker'))
+    });
 </script>
 
 <body>
 
 <label class="switch" id="mainselect">
-  <input type="checkbox" onchange="Hide(this)">
-  <span class="slider"></span>
+    <input id="checker" type="checkbox" onchange="Hide(this)">
+    <span class="slider"></span>
 </label>
 
 <!-- Upload form. Note enctype attribute! -->
+
+<form name="check_form" method="post" id="b" enctype="multipart/form-data">
+
+    {% csrf_token %}
+    <p>{{ fileform.non_field_errors }}</p>
+
+    <p>{{ fileform.file.label_tag }} {{ fileform.file.help_text }}</p>
+
+    <p>
+        {{ fileform.file.errors }}
+        {{ fileform.file }}
+    </p>
+
+    <p><input type="submit" name="fileform" value="Upload" onclick="listen()"/></p>
+    <p><input type="hidden" name="check" value="{{check}}"/></p>
+</form>
+
 <form method="post" id="a" enctype="multipart/form-data">
-    {{youtubeform.as_p}}
-    {% csrf_token %}
-    <p>{{ form.non_field_errors }}</p>
-
-    <p>{{ form.text.label_tag }} {{ form.text.help_text }}</p>
-
-    <p>
-        {{ form.text.errors }}
-        {{ form.text }}
-    </p>
-
-    <p><input type="submit" name="form" value="Upload"/></p>
-</form>
-
-<form method="post" id="b" enctype="multipart/form-data" style="display: none">
 
     {% csrf_token %}
-    <p>{{ form2.non_field_errors }}</p>
+    <p>{{ youtubeform.non_field_errors }}</p>
 
-    <p>{{ form2.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+    <p>{{ youtubeform.text.label_tag }} {{ youtubeform.text.help_text }}</p>
 
     <p>
-        {{ form2.docfile.errors }}
-        {{ form2.docfile }}
+        {{ youtubeform.text.errors }}
+        {{ youtubeform.text }}
     </p>
 
-    <p><input type="submit" name="form2" value="Upload"/></p>
+    <p><input type="submit" name="youtubeform" value="Upload"/></p>
 </form>
+
+
 </body>
 
 </html>
