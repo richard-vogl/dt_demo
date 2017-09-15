@@ -9,3 +9,7 @@ from django.db import models
 
 class Document(models.Model):
     docfile = models.FileField(upload_to='%Y')
+
+
+class Text(models.Model):
+    text = models.CharField(max_length=200)

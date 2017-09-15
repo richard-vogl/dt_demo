@@ -1,35 +1,60 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Minimal Django File Upload Example</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Minimal Django File Upload Example</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'drumtranscription/main.css' %}" />
+</head>
 
-    <body>
-        <!-- List of uploaded documents -->
-        {% if documents %}
-            <ul>
-                {% for document in documents %}
-                    <li><a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No documents.</p>
-        {% endif %}
 
-        <!-- Upload form. Note enctype attribute! -->
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <p>{{ form.non_field_errors }}</p>
+<script>function Hide(check) {
+    if (check.checked) {
+        document.getElementById('a').style.display = 'none';
+        document.getElementById('b').style.display = '';
+    } else {
+        document.getElementById('a').style.display = '';
+        document.getElementById('b').style.display = 'none'
+    }
+}
+</script>
 
-            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+<body>
 
-            <p>
-                {{ form.docfile.errors }}
-                {{ form.docfile }}
-            </p>
+<label class="switch" id="mainselect">
+  <input type="checkbox" onchange="Hide(this)">
+  <span class="slider"></span>
+</label>
 
-            <p><input type="submit" value="Upload"/></p>
-        </form>
-    </body>
+<!-- Upload form. Note enctype attribute! -->
+<form method="post" id="a" enctype="multipart/form-data">
+    {{youtubeform.as_p}}
+    {% csrf_token %}
+    <p>{{ form.non_field_errors }}</p>
+
+    <p>{{ form.text.label_tag }} {{ form.text.help_text }}</p>
+
+    <p>
+        {{ form.text.errors }}
+        {{ form.text }}
+    </p>
+
+    <p><input type="submit" name="form" value="Upload"/></p>
+</form>
+
+<form method="post" id="b" enctype="multipart/form-data" style="display: none">
+
+    {% csrf_token %}
+    <p>{{ form2.non_field_errors }}</p>
+
+    <p>{{ form2.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+
+    <p>
+        {{ form2.docfile.errors }}
+        {{ form2.docfile }}
+    </p>
+
+    <p><input type="submit" name="form2" value="Upload"/></p>
+</form>
+</body>
 
 </html>
