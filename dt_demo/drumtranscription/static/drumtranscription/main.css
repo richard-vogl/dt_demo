@@ -15,6 +15,7 @@ body {
 
 /* The slider */
 .slider {
+  border-radius: 10px;
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -27,6 +28,7 @@ body {
 }
 
 .slider:before {
+  border-radius: 30%;
   position: absolute;
   content: "";
   height: 26px;
@@ -52,8 +54,10 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+
 .inputform{
   width: 400px;
+  height: 34px;
 }
 
 /* Tooltip container */
@@ -106,10 +110,16 @@ body {
 }
 
 #column2{
-  width: 65%;
+  width: 70%;
   height: 80px;
     display:flex;
     flex-direction:column;
     margin-top: auto;
   padding-top: 15px;
+}
+
+.infoImg{
+  width:20px;
+  height:20px;
+  display: inline;
 }
