@@ -19,7 +19,7 @@ def update_filename(instance, filename):
 
 
 class Document(models.Model):
-    file = models.FileField(upload_to=update_filename)
+    docfile = models.FileField(upload_to=update_filename)
 
 
 class Text(models.Model):

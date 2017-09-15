@@ -35,6 +35,8 @@ def index(request):
             if file_input.is_valid():
                 new_file = Document(docfile=request.FILES['docfile'])
                 new_file.save()
+                # so file doesn't get stored in db because we need to delete it anyways
+                new_file.delete()
                 fid = os.path.basename(new_file.docfile.name)
                 fid = os.path.splitext(fid)[0]
 

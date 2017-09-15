@@ -29,43 +29,58 @@
 
 <body>
 
-<label class="switch" id="mainselect">
-    <input id="checker" type="checkbox" onchange="Hide(this)">
-    <span class="slider"></span>
-</label>
+<div id="row1">
+    <div id="column1">
 
-<!-- Upload form. Note enctype attribute! -->
+        <label class="switch" id="mainselect">
+            <input id="checker" type="checkbox" onchange="Hide(this)">
+            <span class="slider"></span>
+        </label>
+    </div>
 
-<form name="check_form" method="post" id="b" enctype="multipart/form-data">
 
-    {% csrf_token %}
-    <p>{{ fileform.non_field_errors }}</p>
+    <div id="column2">
 
-    <p>{{ fileform.file.label_tag }} {{ fileform.file.help_text }}</p>
+        <form name="check_form" method="post" id="b" enctype="multipart/form-data">
 
-    <p>
-        {{ fileform.file.errors }}
-        {{ fileform.file }}
-    </p>
+            {% csrf_token %}
 
-    <p><input type="submit" name="fileform" value="Upload" onclick="listen()"/></p>
-    <p><input type="hidden" name="check" value="{{check}}"/></p>
-</form>
+            {{ fileform.docfile }}
 
-<form method="post" id="a" enctype="multipart/form-data">
+            <input type="submit" name="fileform" value="Upload" onclick="listen()"/>
 
-    {% csrf_token %}
-    <p>{{ youtubeform.non_field_errors }}</p>
 
-    <p>{{ youtubeform.text.label_tag }} {{ youtubeform.text.help_text }}</p>
+            <div class="tooltip">
+                <img src="{% static 'drumtranscription/img/info.png' %}" alt="info"
+                     style="width:30px;height:30px;">
+                <span class="tooltiptext">{{ fileform.docfile.label_tag }} <p></p> {{ fileform.docfile.help_text }}</span>
+            </div>
 
-    <p>
-        {{ youtubeform.text.errors }}
-        {{ youtubeform.text }}
-    </p>
+             {{ fileform.non_field_errors }} {{ fileform.docfile.errors }}
 
-    <p><input type="submit" name="youtubeform" value="Upload"/></p>
-</form>
+
+            <p><input type="hidden" name="check" value="{{check}}"/></p>
+        </form>
+
+        <form method="post" id="a" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            {{ youtubeform.text }}
+
+            <input type="submit" name="youtubeform" value="Upload"/>
+
+            <div class="tooltip">
+                <img src="{% static 'drumtranscription/img/info.png' %}" alt="info" style="width:30px;height:30px;">
+                <span class="tooltiptext">{{ youtubeform.text.label_tag }} <p></p> {{ youtubeform.text.help_text }}</span>
+            </div>
+
+            {{ youtubeform.non_field_errors }}{{ youtubeform.text.errors }}
+
+        </form>
+    </div>
+
+</div>
 
 
 </body>
