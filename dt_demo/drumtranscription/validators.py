@@ -9,6 +9,7 @@ def validate_file_extension(value):
 
 
 def validate_text_youtube_expression(value):
+    # TODO: limit video length
     regex = 'http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/(?:watch\?v=|embed' \
             '\/)|\.be\/)(?P<video_id>[\W\-\_]*)(&(amp;)?[\W\?=]*)?'
     from django.core.exceptions import ValidationError

@@ -4,10 +4,13 @@
     <title>Drum Transcription Demo</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'drumtranscription/main.css' %}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="{% static 'drumtranscription/main.js' %}"></script>
 </head>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
 <script>
+    //TODO: make info icon black
     function Hide(check) {
         if (check.checked) {
             document.getElementById('a').style.display = 'none';
@@ -25,9 +28,62 @@
         }
         Hide(document.getElementById('checker'))
     });
+
+    //save settings without reloading page....
+    function submitSettings() {
+        var select = document.getElementById('id_setting')
+        var selected = select.options[select.selectedIndex].value;
+        if(selected === "CRNN_MODEL"){
+            document.getElementById('crnn_setting_checkbox').style.display=''
+        } else{
+            document.getElementById('crnn_setting_checkbox').style.display='none'
+        }
+        $.ajax({  //Call ajax function sending the option loaded
+            url: "",  //This is the url of the ajax view where you make the search
+            type: 'POST',
+            data: $('#setting_form').serialize(),
+            dataType: "json",
+            success: function (response) {
+
+                if (response.error) { // If the function fails
+                    // TODO: error Handling
+                    return;
+                } //Just do nothing in case of Sucess, Settings saved!
+            }
+
+        });
+    }
 </script>
 
 <body>
+<div id="settings">
+    <!-- TODO: error Handling -->
+    <div class="tooltip">
+        <img src="{% static 'drumtranscription/img/settings.png' %}" alt="info" class="infoImg">
+        <span class="tooltiptext">
+
+                    <form id="setting_form" method="post" id="s" enctype="multipart/form-data">
+
+                        {% csrf_token %}
+
+                        <p>{{ settingform.setting }}</p>
+                        <div id="crnn_setting_checkbox">
+                            <p><label class="switch">
+                            {{ settingform.crnn_checkbox }}
+                            <span class="slider"></span>
+                            </label></p>
+                        </div>
+
+                        <input type="submit" name="settingsform" value="Submit" style="display:none"/>
+
+                        {{ settingform.non_field_errors }} {{ settingform.docfile.errors }}
+                    </form>
+
+        </span>
+    </div>
+
+
+</div>
 
 <div id="row1">
     <div id="column1">
@@ -47,16 +103,15 @@
 
             {{ fileform.docfile }}
 
-            <input type="submit" name="fileform" value="Upload" onclick="listen()"/>
+            <input type="submit" name="fileform" value="Submit" style="height:36px;"/>
 
 
             <div class="tooltip">
-                <img src="{% static 'drumtranscription/img/info.png' %}" alt="info"
-                     style="width:30px;height:30px;">
+                <img src="{% static 'drumtranscription/img/info.png' %}" alt="info" class="infoImg">
                 <span class="tooltiptext">{{ fileform.docfile.label_tag }} <p></p> {{ fileform.docfile.help_text }}</span>
             </div>
 
-             {{ fileform.non_field_errors }} {{ fileform.docfile.errors }}
+            {{ fileform.non_field_errors }} {{ fileform.docfile.errors }}
 
 
             <p><input type="hidden" name="check" value="{{check}}"/></p>
@@ -68,10 +123,10 @@
 
             {{ youtubeform.text }}
 
-            <input type="submit" name="youtubeform" value="Upload"/>
+            <input type="submit" name="youtubeform" value="Submit" style="height:36px;"/>
 
             <div class="tooltip">
-                <img src="{% static 'drumtranscription/img/info.png' %}" alt="info" style="width:30px;height:30px;">
+                <img src="{% static 'drumtranscription/img/info.png' %}" alt="info" class="infoImg">
                 <span class="tooltiptext">{{ youtubeform.text.label_tag }} <p></p> {{ youtubeform.text.help_text }}</span>
             </div>
 

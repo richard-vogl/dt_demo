@@ -24,3 +24,8 @@ class Document(models.Model):
 
 class Text(models.Model):
     text = models.CharField(max_length=200)
+
+
+
+
+

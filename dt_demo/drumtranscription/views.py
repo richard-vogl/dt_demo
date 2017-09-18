@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import time
 import youtube_dl
+import bin
+from django.http import HttpResponse
+from django.http import JsonResponse
+from django.template import loader
 
 from .forms import *
 from .models import *
@@ -11,10 +16,11 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
-
+# TODO: check if session fields are set before accessing
 def index(request):
     # Handle file upload
     if request.method == 'POST':
+        print(request.POST)
         if "youtubeform" in request.POST:
             file_input = DocumentForm()
             youtube_input = YoutubeForm(request.POST)
@@ -25,8 +31,8 @@ def index(request):
 
                 request.session['file_id'] = fid
 
-                # Redirect to madmom page
-                return HttpResponseRedirect(reverse('index'))
+                # Redirect to loading page
+                return HttpResponseRedirect(reverse('loading'))
 
         if "fileform" in request.POST:
             file_input = DocumentForm(request.POST, request.FILES)
@@ -42,21 +48,65 @@ def index(request):
 
                 request.session['file_id'] = fid
 
-                # Redirect to madmom page
-                return HttpResponseRedirect(reverse('index'))
+                # Redirect to loading page
+                return HttpResponseRedirect(reverse('loading'))
+
+        if "setting" in request.POST:
+
+            # can't check if valid because Checkbox does not post False value with
+            request.session['madmom_mode'] = request.POST.get('setting')
+            try:
+                if "on" in request.POST.get('crnn_checkbox'):
+                    request.session['CRNN_mode'] = True
+            except TypeError:
+                request.session['CRNN_mode'] = False
+            # TODO: Error Handling
+            return JsonResponse({'error_text': 'None'})
 
     else:
-        print(request.session.get('file_id', '-1'))
+        # On Page load
         file_input = DocumentForm()  # A empty, unbound form
         youtube_input = YoutubeForm()
+        setting_input = SettingsForm()
         check = "False"
 
     # Render list page with the documents and the form
     return render(
         request,
         'drumtranscription/index.html',
-        {'youtubeform': youtube_input, 'fileform': file_input, 'check': check},
+        {'youtubeform': youtube_input, 'fileform': file_input, 'check': check, 'settingform': setting_input},
     )
+
+
+def loading(request):
+    if request.method == 'POST':
+        #TODO: check if these session params exist
+        return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                             'done': request.session.get('done_loading')})
+    else:
+        # TODO: set an interval Parameter in the JSONResponse for the loading msg checks
+        request.session['loading_msg'] = "Processing"
+        request.session['done_loading'] = False
+
+    return render(
+        request,
+        'drumtranscription/loading.html',
+    )
+
+
+def calculate(request):
+    if request.method == 'POST':
+        # TODO: handle error message
+        # TODO: add madmom calculation, syntesize midi, look if Finalizing is nessacery
+        time.sleep(3)
+        request.session['loading_msg'] = "Synthesizing midi"
+        request.session.save()
+        time.sleep(3)
+        request.session['loading_msg'] = "Finalizing"
+        request.session.save()
+        time.sleep(3)
+        request.session['done_loading'] = True
+    return HttpResponse("OK")
 
 
 def download_youtube(url):
