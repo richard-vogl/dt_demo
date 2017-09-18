@@ -27,6 +27,7 @@
             document.getElementById('checker').checked = false;
         }
         Hide(document.getElementById('checker'))
+        submitSettings()
     });
 
     //save settings without reloading page....
@@ -66,8 +67,11 @@
 
                         {% csrf_token %}
 
+                        <p>{{ settingform.setting.label_tag }}</p>
                         <p>{{ settingform.setting }}</p>
+
                         <div id="crnn_setting_checkbox">
+                            {{ settingform.crnn_checkbox.label_tag }}
                             <p><label class="switch">
                             {{ settingform.crnn_checkbox }}
                             <span class="slider"></span>

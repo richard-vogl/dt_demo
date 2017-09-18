@@ -23,6 +23,7 @@ def index(request):
         print(request.POST)
         if "youtubeform" in request.POST:
             file_input = DocumentForm()
+            setting_input = SettingsForm()
             youtube_input = YoutubeForm(request.POST)
             check = "False"
             if youtube_input.is_valid():
@@ -37,6 +38,7 @@ def index(request):
         if "fileform" in request.POST:
             file_input = DocumentForm(request.POST, request.FILES)
             youtube_input = YoutubeForm()
+            setting_input = SettingsForm()
             check = "True"
             if file_input.is_valid():
                 new_file = Document(docfile=request.FILES['docfile'])
@@ -116,6 +118,7 @@ def download_youtube(url):
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': path,
+        'no-playlist':True,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'wav',

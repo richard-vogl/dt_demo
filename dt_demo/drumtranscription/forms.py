@@ -2,7 +2,6 @@ from django import forms
 from .validators import validate_file_extension, validate_text_youtube_expression
 
 
-# TODO: is it aprpriate to set the html classes/tags here?
 class DocumentForm(forms.Form):
     docfile = forms.FileField(
         label='Select a file', validators=[validate_file_extension], required=True,
@@ -21,10 +20,11 @@ class YoutubeForm(forms.Form):
 
 class SettingsForm(forms.Form):
     setting = forms.ChoiceField(
+        label='Select a Model:',
         choices=(('CRNN_MODEL', 'CRNN-Model'),
                  ('BRNN_MODEL', 'BRNN-Model'),
                  ('CNN_MODEL', 'CNN-Model'),
                  ),
         required=True, widget=forms.Select(attrs={'onchange': "submitSettings();"})
     )
-    crnn_checkbox = forms.BooleanField(widget=forms.CheckboxInput(attrs={'onchange': "submitSettings();"}))
+    crnn_checkbox = forms.BooleanField(label='rand:', widget=forms.CheckboxInput(attrs={'onchange': "submitSettings();"}))

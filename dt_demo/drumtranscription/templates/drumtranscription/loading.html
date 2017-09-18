@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <!--TODO: Loading gif should have transparent background
     TODO: Add error msg
-    TODO: Look how stable that jquery code is
-    TODO: Add some CSS so it doesn't look like shit-->
+    TODO: Look how stable that jquery code is-->
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -62,9 +61,9 @@
     }
 </script>
 
-<div>
+<div class="loading">
     <img src="{% static 'drumtranscription/img/loading.gif' %}" alt="info">
-    <p id="loading_msg">Processing</p>
+    <h2 id="loading_msg" class="caption">Processing</h2>
 </div>
 
 

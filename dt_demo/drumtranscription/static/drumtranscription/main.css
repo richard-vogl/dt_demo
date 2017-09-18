@@ -1,4 +1,12 @@
-/* TODO: make colors as variables to easy change the colors */
+:root {
+  --background: #eff5f0;
+  --sheme-dark: #128c7e;
+  --sheme-darker: #d0e2d3;
+  --sheme-darkest: #000000;
+    --tooltip-background:#828282;
+    --tooltip-text:#fff;
+}
+
 
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -43,11 +51,11 @@ body {
 }
 
 input:checked + .slider {
-  background-color: #128c7e;
+  background-color: var(--sheme-dark)
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #128c7e;
+  box-shadow: 0 0 1px var(--sheme-dark)
 }
 
 input:checked + .slider:before {
@@ -70,10 +78,10 @@ input:checked + .slider:before {
 
 /* Tooltip text */
 .tooltip .tooltiptext {
-    visibility: hidden;
+    opacity: 0;
     width: 250px;
-    background-color: #128c7e;
-    color: #fff;
+    background-color: var(--tooltip-background);
+    color: var(--tooltip-text);
     text-align: center;
     padding: 5px 0;
     border-radius: 6px;
@@ -81,15 +89,18 @@ input:checked + .slider:before {
     /* Position the tooltip text - see examples below! */
     position: absolute;
     z-index: 1;
+    transition: opacity 0s 1s;
+
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
-    visibility: visible;
+    opacity: 1;
+    transition: opacity 0s;
 }
 
 body {
-    background-color: #eff5f0;
+    background-color: var(--background);
 }
 
 #row1{
@@ -124,4 +135,20 @@ body {
   width:20px;
   height:20px;
   display: inline;
+}
+
+
+.loading {
+    width:270px;
+	height:270px;
+	position:absolute;
+	left:50%;
+	top:50%;
+	margin:-135px 0 0 -135px;
+}
+
+.caption {
+    width:270px;
+    text-align: center;
+    font-family: Tahoma, Verdana, Segoe, sans-serif;
 }
