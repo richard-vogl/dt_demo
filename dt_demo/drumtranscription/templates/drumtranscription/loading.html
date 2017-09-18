@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--TODO: Loading gif should have transparent background
+    TODO: Add error msg
+    TODO: Look how stable that jquery code is
+    TODO: Add some CSS so it doesn't look like shit-->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Drum Transcription Demo</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'drumtranscription/main.css' %}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="{% static 'drumtranscription/main.js' %}"></script>
+</head>
+<body>
+
+<script>
+
+    var dots = 1;
+
+    $(document).ready(function () {
+        $.ajax({  //Call ajax function sending the option loaded
+            url:"calculate/",
+            type: 'POST',
+            success: function (response) {
+                //just to make sure that the next function doesn't use an old response
+            }
+        });
+        progress();
+    })
+
+    function progress() {
+        $.ajax({  //Call ajax function sending the option loaded
+            url: "",  //This is the url of the ajax view where you make the search
+            type: 'POST',
+            dataType: "json",
+            success: function (response) {
+
+                if (response.error) { // If the function fails
+                    // Error
+                    return;
+                } else {  // Success
+                    if (dots > 3) {
+                        dots = 1
+                    }
+                    if (response.done) {
+                        return;
+                    } else {
+                        document.getElementById("loading_msg").innerHTML = response.loading_msg
+                        for (i = 0; i < dots; i++) {
+                            document.getElementById("loading_msg").innerHTML += ".";
+                        }
+                        dots++;
+                    }
+
+
+                }
+                setTimeout(progress, 1000 /*1 second*/);
+            }
+
+        });
+    }
+</script>
+
+<div>
+    <img src="{% static 'drumtranscription/img/loading.gif' %}" alt="info">
+    <p id="loading_msg">Processing</p>
+</div>
+
+
+</body>
+</html>
