@@ -1,3 +1,154 @@
+:root {
+  --background: #eff5f0;
+  --sheme-dark: #128c7e;
+  --sheme-darker: #d0e2d3;
+  --sheme-darkest: #000000;
+    --tooltip-background:#828282;
+    --tooltip-text:#fff;
+}
+
+
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  border-radius: 10px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  border-radius: 30%;
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--sheme-dark)
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--sheme-dark)
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+
+.inputform{
+  width: 50%;
+  height: 34px;
+}
+
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    opacity: 0;
+    width: 250px;
+    background-color: var(--tooltip-background);
+    color: var(--tooltip-text);
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+    transition: opacity 0s 1s;
+
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    opacity: 1;
+    transition: opacity 0s;
+}
+
+body {
+    background-color: var(--background);
+}
+
+#row1{
+    display:flex;
+    flex-direction:row;
+    justify-content: center;
+  align-items: center;
+    height: 50%;
+}
+
+#column1{
+  width: 80px;
+  height: 80px;
+    display:flex;
+    flex-direction:column;
+    margin-left: auto;
+  margin-top: auto;
+  padding-bottom: 0px;
+
+}
+
+#column2{
+  width: 70%;
+  height: 80px;
+    display:flex;
+    flex-direction:column;
+    margin-top: auto;
+  padding-top: 15px;
+}
+
+.infoImg{
+  width:20px;
+  height:20px;
+  display: inline;
+}
+
+
+.loading {
+    width:270px;
+	height:270px;
+	position:absolute;
+	left:50%;
+	top:50%;
+	margin:-135px 0 0 -135px;
+}
+
+.caption {
+    width:270px;
+    text-align: center;
+    font-family: Tahoma, Verdana, Segoe, sans-serif;
 }

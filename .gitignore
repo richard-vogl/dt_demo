@@ -1,0 +1,29 @@
+# Compiled Python files
+*.pyc
+
+# Python distutil files
+/dist/
+/MANIFEST
+
+# Cython build directory and .c/.so files
+/build/
+*.c
+*.so
+
+# ipython notebook files
+.ipynb_checkpoints
+*.ipynb
+
+# Vim swap files
+*.swp
+
+# PyDev / Eclipse files
+/.project
+/.pydevproject
+/.settings/
+
+# PyCharm files
+/.idea/
+
+# MacOS files
+.DS_Store
