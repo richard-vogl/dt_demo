@@ -16,6 +16,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
+
 # TODO: check if session fields are set before accessing
 def index(request):
     # Handle file upload
@@ -55,14 +56,21 @@ def index(request):
 
         if "setting" in request.POST:
 
-            # can't check if valid because Checkbox does not post False value with
-            request.session['madmom_mode'] = request.POST.get('setting')
+            # can't check if valid because Checkbox does not post False value with jquery
+            # TODO: Error Handling
+            try:
+                mode = request.POST.get('setting')
+                if mode == 'CRNN_MODEL' or mode == 'BRNN_MODEL' or mode == 'CNN_MODEL':
+                    request.session['madmom_mode'] = mode
+                else:
+                    return JsonResponse({'error_text': 'None'})
+            except TypeError:
+                return JsonResponse({'error_text': 'None'})
             try:
                 if "on" in request.POST.get('crnn_checkbox'):
                     request.session['CRNN_mode'] = True
             except TypeError:
                 request.session['CRNN_mode'] = False
-            # TODO: Error Handling
             return JsonResponse({'error_text': 'None'})
 
     else:
@@ -82,7 +90,7 @@ def index(request):
 
 def loading(request):
     if request.method == 'POST':
-        #TODO: check if these session params exist
+        # TODO: check if these session params exist
         return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
                              'done': request.session.get('done_loading')})
     else:
@@ -108,7 +116,9 @@ def calculate(request):
         request.session.save()
         time.sleep(3)
         request.session['done_loading'] = True
-    return HttpResponse("OK")
+        request.session.save()
+    return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                         'done': True})
 
 
 def download_youtube(url):
@@ -118,7 +128,7 @@ def download_youtube(url):
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': path,
-        'no-playlist':True,
+        'no-playlist': True,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'wav',
