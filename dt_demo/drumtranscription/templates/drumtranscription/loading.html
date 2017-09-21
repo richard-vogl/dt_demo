@@ -17,6 +17,7 @@
 
     var dots = 1;
 
+    // TODO: error handling
     $(document).ready(function () {
         $.ajax({  //Call ajax function sending the option loaded
             url:"calculate/",
@@ -30,7 +31,7 @@
     // TODO: error handling
     function progress() {
         $.ajax({  //Call ajax function sending the option loaded
-            url: "",  //This is the url of the ajax view where you make the search
+            url: "",  //url of the view where you make the search
             type: 'POST',
             dataType: "json",
             success: function (response) {

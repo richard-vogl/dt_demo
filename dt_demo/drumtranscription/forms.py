@@ -1,4 +1,6 @@
 from django import forms
+
+from django.conf import settings
 from .validators import validate_file_extension, validate_text_youtube_expression
 
 
@@ -6,7 +8,7 @@ class DocumentForm(forms.Form):
     docfile = forms.FileField(
         label='Select a file', validators=[validate_file_extension], required=True,
         widget=forms.FileInput(attrs={'class': 'inputform'}),
-        help_text='Only .wav allowed'
+        help_text='Only .wav and .mp3 allowed'
     )
 
 
@@ -21,9 +23,9 @@ class YoutubeForm(forms.Form):
 class SettingsForm(forms.Form):
     setting = forms.ChoiceField(
         label='Select a Model:',
-        choices=(('CRNN_MODEL', 'CRNN-Model'),
-                 ('BRNN_MODEL', 'BRNN-Model'),
-                 ('CNN_MODEL', 'CNN-Model'),
+        choices=((settings.CRNN_MODEL, 'CRNN-Model'),
+                 (settings.BRNN_MODEL, 'BRNN-Model'),
+                 (settings.CNN_MODEL, 'CNN-Model'),
                  ),
         required=True, widget=forms.Select(attrs={'onchange': "submitSettings();"})
     )
