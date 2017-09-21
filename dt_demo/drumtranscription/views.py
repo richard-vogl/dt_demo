@@ -198,9 +198,9 @@ def calculate(request):
         request.session['loading_msg'] = "Finalizing"
         request.session.save()
 
-        # TODO: maybe add options here
-        timidity_options = '\" -idqq -B2,8 -A100,100a -a -U -s 44100  -D 1-127 -EFchorus=0 -EFreverb=0 -EFx=0 -OwM -o \"'
-        timidity_sound_font =  base_dir + '/drumtranscription' + static('drumtranscription/'+sound_font_name)
+        # TODO: control options
+        timidity_options = '\" -idqq -B2,8 -A100,100a -a -U -s 44100  -D 0-2 -EFchorus=0 -EFreverb=0 -EFx=0 -OwM -o \"'
+        timidity_sound_font = base_dir + '/drumtranscription' + static('drumtranscription/'+sound_font_name)
         timidity_output_file = file_path + fid + synt_postfix + '.wav'
         timidity_input_file = txt2midi_output
 
