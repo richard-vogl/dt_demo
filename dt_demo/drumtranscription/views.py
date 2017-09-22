@@ -20,10 +20,11 @@ from .models import *
 from .harmonic_percussive_sep import median_sep
 
 
-# TODO: check if session fields are set before accessing
-# TODO: make logging work
-
 LOGGER = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.DEBUG,
+)
+
 
 def index(request):
     # Handle file upload
@@ -105,9 +106,14 @@ def index(request):
 
 def loading(request):
     if request.method == 'POST':
-        # TODO: check if these session params exist
-        return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
-                             'done': request.session.get('done_loading')})
+        # TODO: error Handling
+        try:
+            return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                                 'done': request.session.get('done_loading')})
+        except TypeError:
+            return JsonResponse({'loading_msg': '-', 'error_text': 'None',
+                                 'done': True})
+
     else:
         # TODO: set an interval Parameter in the JSONResponse for the loading msg checks
         request.session['loading_msg'] = "Processing"
@@ -120,7 +126,7 @@ def loading(request):
 
 
 def calculate(request):
-
+    # TODO: ask if handling errors for os.system calls necessary
     if request.method == 'POST':
         # --- add session parameters ----
 
@@ -167,7 +173,7 @@ def calculate(request):
                              madmom_mode + madmom_rand + \
                              'single -o ' + madmom_output_file + madmom_input_file
 
-        LOGGER.debug('starting madmom processing with command: \n' + madmom_command_str)
+        LOGGER.debug('starting madmom processing with command: \n %s\n', madmom_command_str)
         os.system(madmom_command_str)
 
         # ----  txt to midi ----
@@ -175,14 +181,14 @@ def calculate(request):
         request.session.save()
         txt2midi_path = base_dir + '/midi2txt/midi2txt/txt_to_midi.py '
         # TODO: maybe add options here
-        txt2midi_options = ''
+        txt2midi_options = ' -t 100 '
         txt2midi_input_file = '-i ' + madmom_output_file + ' '
         txt2midi_output = file_path + fid + '.midi'
         txt2midi_output_file = '-o ' + txt2midi_output
         txt2midi_command_str = 'python3.5 ' + txt2midi_path + txt2midi_input_file + \
                                txt2midi_output_file + txt2midi_options
 
-        LOGGER.debug('txt to midi conversion with command: \n' + txt2midi_command_str)
+        LOGGER.debug('txt to midi conversion with command:\n %s\n', txt2midi_command_str)
         os.system(txt2midi_command_str)
 
         # ---- harmonic sep ----
@@ -204,7 +210,7 @@ def calculate(request):
         timidity_output_file = file_path + fid + synt_postfix + '.wav'
         timidity_input_file = txt2midi_output
 
-        LOGGER.debug('midi to wav conversion with command: \n' + txt2midi_command_str)
+        LOGGER.debug('midi to wav conversion with command: \n %s\n', txt2midi_command_str)
 
         timidy_command_str = "timidity -x \"soundfont " + timidity_sound_font + "\" \"" + \
                              timidity_input_file + timidity_options + timidity_output_file + "\""
@@ -236,3 +242,8 @@ def download_youtube(url):
         ydl.download([url])
 
     return fid
+
+
+def make_json_error(error_msg):
+    error = {'error': True, 'error_msg': error_msg}
+    return error

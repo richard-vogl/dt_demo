@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import madmom.features.drums as drums
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOWNLOAD_DIR = os.path.dirname(os.path.dirname(__file__)) + '/media/'
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -27,7 +27,6 @@ SECRET_KEY = 'wh(8vw%3dfll1jpaho#1+(u2@!xj0m#@_=9kis8q1y=-p^ewf^'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -71,7 +70,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'dt_demo.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
@@ -81,7 +79,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -120,11 +117,11 @@ LOGGING = {
         }
     },
     'loggers': {
-        'drumtranscription': {
+        'hknlp': {
             'handlers': ['console'],
             'propagate': True,
         },
-        'dt_demo': {
+        'asdf': {
             'handlers': ['console'],
             'propagate': True,
         }
@@ -149,9 +146,11 @@ USE_TZ = True
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-CRNN_MODEL = 'CRNN5'
-CNN_MODEL = 'CNN3'
-BRNN_MODEL = 'BRNN2'
+# see comments for parameters
+
+CRNN_MODEL = drums.CRNN_MODEL  # 'CRNN5'
+CNN_MODEL = drums.CRNN_MODEL  # 'CNN3'
+BRNN_MODEL = drums.BRNN_MODEL  # 'BRNN2'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
