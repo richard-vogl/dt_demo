@@ -71,7 +71,6 @@ def index(request):
         if "setting" in request.POST:
 
             # can't check if valid because Checkbox does not post False value with jquery
-            # TODO: Error Handling
             try:
                 mode = request.POST.get('setting')
                 if mode == settings.CRNN_MODEL \
@@ -79,9 +78,9 @@ def index(request):
                         or mode == settings.CNN_MODEL:
                     request.session['madmom_mode'] = mode
                 else:
-                    return JsonResponse({'error_text': 'None'})
+                    return JsonResponse({'error_text': 'Seems like you are trying to do something stupid'})
             except TypeError:
-                return JsonResponse({'error_text': 'None'})
+                return JsonResponse({'error_text': 'There seems to be a problem with your session'})
             try:
                 if "on" in request.POST.get('crnn_checkbox'):
                     request.session['CRNN_mode'] = True
@@ -109,7 +108,7 @@ def loading(request):
         # TODO: error Handling
         try:
             return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
-                                 'done': request.session.get('done_loading')})
+                                'done': request.session.get('done_loading')})
         except TypeError:
             return JsonResponse({'loading_msg': '-', 'error_text': 'None',
                                  'done': True})
@@ -122,6 +121,13 @@ def loading(request):
     return render(
         request,
         'drumtranscription/loading.html',
+    )
+
+
+def player(request):
+    return render(
+        request,
+        'drumtranscription/player.html'
     )
 
 
@@ -215,6 +221,8 @@ def calculate(request):
         timidy_command_str = "timidity -x \"soundfont " + timidity_sound_font + "\" \"" + \
                              timidity_input_file + timidity_options + timidity_output_file + "\""
         os.system(timidy_command_str)
+
+        # TODO: maybe convert to mp3 for shorter upload
 
         # ---- tell loading we are done ----
 

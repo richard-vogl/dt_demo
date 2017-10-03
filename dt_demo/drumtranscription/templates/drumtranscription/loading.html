@@ -42,6 +42,8 @@
                         dots = 1
                     }
                     if (response.done) {
+                        var url = "{% url 'player' %}"
+                        document.location.href=url
                         return;
                     } else {
                         document.getElementById("loading_msg").innerHTML = response.loading_msg

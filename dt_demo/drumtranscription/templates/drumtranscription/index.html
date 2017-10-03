@@ -29,6 +29,14 @@
         submitSettings()
     });
 
+    function error(msg){
+        if(msg!=='None'){
+            // maybe append a dot so it looks like a django error msg
+            document.getElementById('error_msg_1').innerHTML = msg
+            document.getElementById('error_msg_2').innerHTML = msg
+        }
+    }
+
     //save settings without reloading page....
     function submitSettings() {
         var select = document.getElementById('id_setting')
@@ -46,9 +54,13 @@
             success: function (response) {
 
                 if (response.error) { // If the function fails
-                    // TODO: error Handling
+                    error('There seems to be connection problems')
                     return;
-                } //Just do nothing in case of Sucess, Settings saved!
+                }
+                if(response.error_text!=='None'){
+                    error(response.error_text)
+                    return;
+                }//Just do nothing in case of Sucess, Settings saved!
             }
 
         });
@@ -57,7 +69,6 @@
 
 <body>
 <div id="settings">
-    <!-- TODO: error Handling -->
     <div class="tooltip">
         <img src="{% static 'drumtranscription/img/settings.png' %}" alt="info" class="infoImg">
         <span class="tooltiptext">
@@ -79,7 +90,6 @@
 
                         <input type="submit" name="settingsform" value="Submit" style="display:none"/>
 
-                        {{ settingform.non_field_errors }} {{ settingform.docfile.errors }}
                     </form>
 
         </span>
@@ -115,6 +125,10 @@
             </div>
 
             {{ fileform.non_field_errors }} {{ fileform.docfile.errors }}
+            {{ settingform.non_field_errors }} {{ settingform.docfile.errors }}
+            <!-- There isn't a css for this error msg, because it normally should
+            not happen that there is more than one error msg!-->
+            <p id="error_msg_1"></p>
 
 
             <p><input type="hidden" name="check" value="{{check}}"/></p>
@@ -134,6 +148,10 @@
             </div>
 
             {{ youtubeform.non_field_errors }}{{ youtubeform.text.errors }}
+            {{ settingform.non_field_errors }} {{ settingform.docfile.errors }}
+            <!-- There isn't a css for this error msg, because it normally should
+            not happen that there is more than one error msg!-->
+            <p id="error_msg_2"></p>
 
         </form>
     </div>

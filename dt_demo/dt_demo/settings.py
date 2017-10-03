@@ -149,7 +149,7 @@ MEDIA_URL = '/media/'
 # see comments for parameters
 
 CRNN_MODEL = drums.CRNN_MODEL  # 'CRNN5'
-CNN_MODEL = drums.CRNN_MODEL  # 'CNN3'
+CNN_MODEL = drums.CNN_MODEL  # 'CNN3'
 BRNN_MODEL = drums.BRNN_MODEL  # 'BRNN2'
 
 # Static files (CSS, JavaScript, Images)
