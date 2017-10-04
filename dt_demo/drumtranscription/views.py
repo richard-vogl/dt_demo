@@ -59,6 +59,7 @@ def index(request):
 
                 # mp3 to wav and delete mp3 upload
                 if '.mp3' in new_file.docfile.name:
+
                     sound = AudioSegment.from_mp3(settings.DOWNLOAD_DIR+fid+'.mp3')
                     sound.export(settings.DOWNLOAD_DIR+fid+'.wav', format="wav")
                     os.remove(settings.DOWNLOAD_DIR+fid+'.mp3')
@@ -211,6 +212,7 @@ def calculate(request):
         request.session.save()
 
         # TODO: control options
+        # TODO: find out why the .wav is shorter than the original and the .mp3 is as long as the original
         timidity_options = '\" -idqq -B2,8 -A100,100a -a -U -s 44100  -D 0-2 -EFchorus=0 -EFreverb=0 -EFx=0 -OwM -o \"'
         timidity_sound_font = base_dir + '/drumtranscription' + static('drumtranscription/'+sound_font_name)
         timidity_output_file = file_path + fid + synt_postfix + '.wav'
@@ -222,7 +224,17 @@ def calculate(request):
                              timidity_input_file + timidity_options + timidity_output_file + "\""
         os.system(timidy_command_str)
 
-        # TODO: maybe convert to mp3 for shorter upload
+        sound_original = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + '.wav')
+        sound_harm = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + harm_postfix + '.wav')
+        sound_synt = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + synt_postfix + '.wav')
+
+        sound_original.export(settings.DOWNLOAD_DIR + fid + '.mp3', format='mp3')
+        sound_harm.export(settings.DOWNLOAD_DIR + fid + harm_postfix + '.mp3', format='mp3')
+        sound_synt.export(settings.DOWNLOAD_DIR + fid + synt_postfix + '.mp3', format='mp3')
+
+        os.remove(settings.DOWNLOAD_DIR + fid + '.wav')
+        os.remove(settings.DOWNLOAD_DIR + fid + harm_postfix + '.wav')
+        os.remove(settings.DOWNLOAD_DIR + fid + synt_postfix + '.wav')
 
         # ---- tell loading we are done ----
 
