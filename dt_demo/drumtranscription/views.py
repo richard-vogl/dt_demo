@@ -118,6 +118,7 @@ def loading(request):
         # TODO: set an interval Parameter in the JSONResponse for the loading msg checks
         request.session['loading_msg'] = "Processing"
         request.session['done_loading'] = False
+        request.session.save()
 
     return render(
         request,
@@ -126,10 +127,33 @@ def loading(request):
 
 
 def player(request):
+    if request.method == 'POST':
+        # TODO: error Handling
+        try:
+            return JsonResponse({'id': request.session.get('file_id'),
+                                 'error_text': 'None',
+                                 'harm': request.session.get('harmonic_postfix'),
+                                 'synt': request.session.get('synthesized_postfix')})
+        except TypeError:
+            return JsonResponse({'loading_msg': '-', 'error_text': 'None',
+                                 'done': True})
+
     return render(
         request,
         'drumtranscription/player.html'
     )
+
+
+def finish(request):
+    if request.method == 'POST':
+        # TODO: error Handling
+        # TODO: make it work? html does not trigger somehow
+        LOGGER.debug("asfoun")
+        for f in os.listdir(settings.DOWNLOAD_DIR):
+            if request.session.get('file_id') in f:
+                os.remove(os.path.join(settings.DOWNLOAD_DIR, f))
+
+    return JsonResponse({'error_text': 'None'})
 
 
 def calculate(request):
@@ -223,6 +247,8 @@ def calculate(request):
         timidy_command_str = "timidity -x \"soundfont " + timidity_sound_font + "\" \"" + \
                              timidity_input_file + timidity_options + timidity_output_file + "\""
         os.system(timidy_command_str)
+
+        # ----- convert everything to mp3 for faster upload ----
 
         sound_original = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + '.wav')
         sound_harm = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + harm_postfix + '.wav')

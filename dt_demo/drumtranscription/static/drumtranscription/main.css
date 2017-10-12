@@ -64,7 +64,6 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-
 .inputform{
   width: 50%;
   height: 34px;
@@ -137,6 +136,14 @@ body {
   display: inline;
 }
 
+.playerPos {
+    width:70%;
+	height:300px;
+	position:absolute;
+	left:15%;
+	top:50%;
+	margin:-150px 0 0 0px;
+}
 
 .loading {
     width:270px;

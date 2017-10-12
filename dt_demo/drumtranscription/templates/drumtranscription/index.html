@@ -34,6 +34,9 @@
             // maybe append a dot so it looks like a django error msg
             document.getElementById('error_msg_1').innerHTML = msg
             document.getElementById('error_msg_2').innerHTML = msg
+        } else {
+            document.getElementById('error_msg_1').innerHTML = ""
+            document.getElementById('error_msg_2').innerHTML = ""
         }
     }
 
@@ -54,12 +57,14 @@
             success: function (response) {
 
                 if (response.error) { // If the function fails
-                    error('There seems to be connection problems')
+                    error('There seems to be a connection problem')
                     return;
                 }
                 if(response.error_text!=='None'){
                     error(response.error_text)
                     return;
+                } else {
+                    error('None')
                 }//Just do nothing in case of Sucess, Settings saved!
             }
 

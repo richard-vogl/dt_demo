@@ -5,11 +5,88 @@
     <title>Drum Transcription Demo</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'drumtranscription/main.css' %}"/>
+    <link rel="stylesheet" href="{% static 'drumtranscription/trackswitch.css' %}"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.4.0/wavesurfer.min.js"></script>
     <script src="{% static 'drumtranscription/main.js' %}"></script>
+    <script src="{% static 'drumtranscription/trackswitch.js' %}"></script>
 </head>
-<body>
 
+<script>
+
+    $(document).ready(function () {
+        getID();
+        jQuery(".player").trackSwitch({spacebar: true});
+
+        $(window).unload(function () {
+            alert("sadoifn")
+            $.ajax({  //Call ajax function sending the option loaded
+                url: "finish/",
+                type: 'POST',
+                success: function (response) {
+                    //just to make sure that the next function doesn't use an old response
+                }
+            });
+        });
+    });
+
+
+    function error(msg) {
+        if (msg !== 'None') {
+            // maybe append a dot so it looks like a django error msg
+            document.getElementById('error_msg_1').innerHTML = msg
+        } else {
+            document.getElementById('error_msg_1').innerHTML = ""
+        }
+    }
+
+    function getID() {
+        $.ajax({  //Call ajax function sending the option loaded
+            url: "",  //This is the url of the ajax view where you make the search
+            type: 'POST',
+            dataType: "json",
+            success: function (response) {
+
+                if (response.error) { // If the function fails
+                    error('There seems to be connection problems')
+                    return;
+                }
+                if (response.error_text !== 'None') {
+                    error(response.error_text)
+                    return;
+                } else {
+                    error('None') //not needed maybe
+
+                    $("#ts_1").attr('src', "{% static 'drumtranscription/media/' %}" + response.id + ".mp3");
+                    $("#ts_2").attr('src', "{% static 'drumtranscription/media/' %}" + response.id + response.harm + ".mp3");
+                    $("#ts_3").attr('src', "{% static 'drumtranscription/media/' %}" + response.id + response.synt + ".mp3");
+
+
+                }//Just do nothing in case of Sucess, Settings saved!
+            },
+            async: false
+
+        });
+    }
+
+</script>
+
+<body>
+<div class="playerPos">
+    <div class="player">
+
+        <ts-track title="Original" data-img="drums.png">
+            <ts-source src="{% static 'drumtranscription/media/' %}" id="ts_1" type="audio/mpeg"></ts-source>
+        </ts-track>
+        <ts-track title="Drumless" data-img="synth.png">
+            <ts-source src="{% static 'drumtranscription/media/' %}" id="ts_2" type="audio/mpeg"></ts-source>
+        </ts-track>
+        <ts-track title="Drums" data-img="bass.png">
+            <ts-source src="{% static 'drumtranscription/media/' %}" id="ts_3" type="audio/mpeg"></ts-source>
+        </ts-track>
+    </div>
+    <p id="error_msg_1"></p>
+</div>
 </body>
 </html>
