@@ -19,6 +19,8 @@ from .forms import *
 from .models import *
 from .harmonic_percussive_sep import median_sep
 
+from shutil import copyfile
+
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(
@@ -39,6 +41,9 @@ def index(request):
                 fid = download_youtube(url)
 
                 request.session['file_id'] = fid
+
+                copyfile(settings.DOWNLOAD_DIR + fid + '.wav', settings.WORKING_DIR + fid + '.wav')
+                os.remove(settings.DOWNLOAD_DIR + fid + '.wav')
 
                 # Redirect to loading page
                 return HttpResponseRedirect(reverse('loading'))
@@ -61,8 +66,13 @@ def index(request):
                 if '.mp3' in new_file.docfile.name:
 
                     sound = AudioSegment.from_mp3(settings.DOWNLOAD_DIR+fid+'.mp3')
-                    sound.export(settings.DOWNLOAD_DIR+fid+'.wav', format="wav")
+                    sound.export(settings.WORKING_DIR+fid+'.wav', format="wav")
                     os.remove(settings.DOWNLOAD_DIR+fid+'.mp3')
+
+                else:
+
+                    copyfile(settings.DOWNLOAD_DIR+fid+'.wav', settings.WORKING_DIR+fid+'.wav')
+                    os.remove(settings.DOWNLOAD_DIR+fid+'.wav')
 
                 request.session['file_id'] = fid
 
@@ -144,18 +154,6 @@ def player(request):
     )
 
 
-def finish(request):
-    if request.method == 'POST':
-        # TODO: error Handling
-        # TODO: make it work? html does not trigger somehow
-        LOGGER.debug("asfoun")
-        for f in os.listdir(settings.DOWNLOAD_DIR):
-            if request.session.get('file_id') in f:
-                os.remove(os.path.join(settings.DOWNLOAD_DIR, f))
-
-    return JsonResponse({'error_text': 'None'})
-
-
 def calculate(request):
     # TODO: ask if handling errors for os.system calls necessary
     if request.method == 'POST':
@@ -173,7 +171,7 @@ def calculate(request):
             crnn_mode = request.session.get('CRNN_mode')
 
             base_dir = settings.BASE_DIR
-            file_path = settings.DOWNLOAD_DIR
+            file_path = settings.WORKING_DIR
             crnn_model = settings.CRNN_MODEL
 
             harm_postfix = request.session.get('harmonic_postfix')
@@ -250,17 +248,17 @@ def calculate(request):
 
         # ----- convert everything to mp3 for faster upload ----
 
-        sound_original = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + '.wav')
-        sound_harm = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + harm_postfix + '.wav')
-        sound_synt = AudioSegment.from_wav(settings.DOWNLOAD_DIR + fid + synt_postfix + '.wav')
+        sound_original = AudioSegment.from_wav(file_path + fid + '.wav')
+        sound_harm = AudioSegment.from_wav(file_path+ fid + harm_postfix + '.wav')
+        sound_synt = AudioSegment.from_wav(file_path + fid + synt_postfix + '.wav')
 
-        sound_original.export(settings.DOWNLOAD_DIR + fid + '.mp3', format='mp3')
-        sound_harm.export(settings.DOWNLOAD_DIR + fid + harm_postfix + '.mp3', format='mp3')
-        sound_synt.export(settings.DOWNLOAD_DIR + fid + synt_postfix + '.mp3', format='mp3')
+        sound_original.export(file_path + fid + '.mp3', format='mp3')
+        sound_harm.export(file_path + fid + harm_postfix + '.mp3', format='mp3')
+        sound_synt.export(file_path + fid + synt_postfix + '.mp3', format='mp3')
 
-        os.remove(settings.DOWNLOAD_DIR + fid + '.wav')
-        os.remove(settings.DOWNLOAD_DIR + fid + harm_postfix + '.wav')
-        os.remove(settings.DOWNLOAD_DIR + fid + synt_postfix + '.wav')
+        os.remove(file_path + fid + '.wav')
+        os.remove(file_path + fid + harm_postfix + '.wav')
+        os.remove(file_path + fid + synt_postfix + '.wav')
 
         # ---- tell loading we are done ----
 
