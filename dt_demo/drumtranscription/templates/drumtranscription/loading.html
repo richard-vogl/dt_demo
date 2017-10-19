@@ -21,7 +21,7 @@
 
     // TODO: error handling
     $(document).ready(function () {
-        $.ajax({  //Call ajax function sending the option loaded
+        setTimeout($.ajax({  //Call ajax function sending the option loaded
             url: "calculate/",
             type: 'POST',
             dataType: "JSON",
@@ -29,9 +29,9 @@
             success: function (response) {
                 //just to make sure that the next function doesn't use an old response
             }
-        });
+        }),2000);
         progress();
-    })
+    });
     // TODO: error handling
     function progress() {
         $.ajax({  //Call ajax function sending the option loaded
@@ -63,7 +63,7 @@
 
 
                 }
-                setTimeout(progress, 1000 /*1 second*/);
+                setTimeout(progress, 5000 /*4 second*/);
             }
 
         });

@@ -10,6 +10,7 @@ class DocumentForm(forms.Form):
         widget=forms.FileInput(attrs={'class': 'inputform'}),
         help_text='Only .wav and .mp3 allowed'
     )
+    id = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={'id':'session_id_1'}))
 
 
 class YoutubeForm(forms.Form):
@@ -18,6 +19,7 @@ class YoutubeForm(forms.Form):
         required=True, widget=forms.TextInput(attrs={'placeholder': 'Youtube Url', 'class': 'inputform'}),
         help_text='All common youtube Url\'s should \n work even shortened Url\'s like \n http://youtu.be/BL4hgAoEOto '
     )
+    id = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={'id': 'session_id_2'}))
 
 
 class SettingsForm(forms.Form):
@@ -30,3 +32,4 @@ class SettingsForm(forms.Form):
         required=True, widget=forms.Select(attrs={'onchange': "submitSettings();"})
     )
     crnn_checkbox = forms.BooleanField(label='rand:', widget=forms.CheckboxInput(attrs={'onchange': "submitSettings();"}))
+    id = forms.CharField(max_length=200, required=True, widget=forms.TextInput(attrs={'id': 'session_id_3'}))

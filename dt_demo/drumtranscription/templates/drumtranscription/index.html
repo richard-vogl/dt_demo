@@ -10,6 +10,16 @@
 
 
 <script>
+
+    var id = guidGenerator();
+
+    function guidGenerator() {
+    var S4 = function() {
+       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    };
+    return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}
+
     function Hide(check) {
         if (check.checked) {
             document.getElementById('a').style.display = 'none';
@@ -25,7 +35,14 @@
         } else {
             document.getElementById('checker').checked = false;
         }
-        Hide(document.getElementById('checker'))
+        document.getElementById('session_id_1').value = id;
+        document.getElementById('session_id_1').style.display='none';
+        document.getElementById('session_id_2').value = id;
+        document.getElementById('session_id_2').style.display='none';
+        document.getElementById('session_id_3').value = id;
+        document.getElementById('session_id_3').style.display='none';
+
+        Hide(document.getElementById('checker'));
         submitSettings()
     });
 
@@ -92,6 +109,7 @@
                             <span class="slider"></span>
                             </label></p>
                         </div>
+                        {{settingform.id}}
 
                         <input type="submit" name="settingsform" value="Submit" style="display:none"/>
 
@@ -135,6 +153,8 @@
             not happen that there is more than one error msg!-->
             <p id="error_msg_1"></p>
 
+            {{fileform.id}}
+
 
             <p><input type="hidden" name="check" value="{{check}}"/></p>
         </form>
@@ -157,6 +177,8 @@
             <!-- There isn't a css for this error msg, because it normally should
             not happen that there is more than one error msg!-->
             <p id="error_msg_2"></p>
+
+            {{youtubeform.id}}
 
         </form>
     </div>

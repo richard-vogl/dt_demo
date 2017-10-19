@@ -36,7 +36,6 @@ MUTEX = Lock()
 def index(request):
     # Handle file upload
     if request.method == 'POST':
-        session_id = str(uuid.uuid4())
         if "youtubeform" in request.POST:
 
             file_input = DocumentForm()
@@ -45,9 +44,10 @@ def index(request):
             check = "False"
             if youtube_input.is_valid():
                 url = youtube_input.cleaned_data.get('text')
+                session_id = youtube_input.cleaned_data.get('id')
                 fid = download_youtube(url)
 
-                request.session['file_id'] = fid
+                request.session[session_id+'file_id'] = fid
 
                 copyfile(settings.DOWNLOAD_DIR + fid + '.wav', settings.WORKING_DIR + fid + '.wav')
                 os.remove(settings.DOWNLOAD_DIR + fid + '.wav')
@@ -65,6 +65,7 @@ def index(request):
             check = "True"
             if file_input.is_valid():
                 new_file = Document(docfile=request.FILES['docfile'])
+                session_id = file_input.cleaned_data.get('id')
                 new_file.save()
                 # so file doesn't get stored in db because we need to delete it anyways
                 new_file.delete()
@@ -84,7 +85,7 @@ def index(request):
                     copyfile(settings.DOWNLOAD_DIR+fid+'.wav', settings.WORKING_DIR+fid+'.wav')
                     os.remove(settings.DOWNLOAD_DIR+fid+'.wav')
 
-                request.session['file_id'] = fid
+                request.session[session_id+'file_id'] = fid
 
                 MUTEX.acquire()
                 output = control_file(fid, request, session_id)
@@ -93,6 +94,7 @@ def index(request):
                 return output
 
         if "setting" in request.POST:
+            session_id = request.POST.get('id')
 
             # can't check if valid because Checkbox does not post False value with jquery
             try:
@@ -100,16 +102,16 @@ def index(request):
                 if mode == settings.CRNN_MODEL \
                         or mode == settings.BRNN_MODEL \
                         or mode == settings.CNN_MODEL:
-                    request.session['madmom_mode'] = mode
+                    request.session[session_id+'madmom_mode'] = mode
                 else:
                     return JsonResponse({'error_text': 'Seems like you are trying to do something stupid'})
             except TypeError:
                 return JsonResponse({'error_text': 'There seems to be a problem with your session'})
             try:
                 if "on" in request.POST.get('crnn_checkbox'):
-                    request.session['CRNN_mode'] = True
+                    request.session[session_id+'CRNN_mode'] = True
             except TypeError:
-                request.session['CRNN_mode'] = False
+                request.session[session_id+'CRNN_mode'] = False
             return JsonResponse({'error_text': 'None'})
 
     else:
@@ -133,31 +135,26 @@ def loading(request):
         file_path = settings.WORKING_DIR + 'all_files.txt'
         try:
             session_id = json.loads(request.body.decode('utf-8'))['session']
-
-            if request.session.get('file_in_progress'):
+            if request.session.get(session_id+'file_in_progress'):
                 MUTEX.acquire()
                 j = open(file_path, "r")
                 data = json.load(j)
                 j.close()
                 MUTEX.release()
                 for item in data:
-                    if item["id"] == request.session.get('file_id') and item["model"] == request.session.get('madmom_mode'):
+                    if item["id"] == request.session.get(session_id+'file_id') and item["model"] == request.session.get(session_id+'madmom_mode'):
                         if item["finished"] == True:
                             return JsonResponse(
-                                {'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                                {'loading_msg': request.session.get(session_id+'loading_msg'), 'error_text': 'None',
                                  'done': True})
 
             # --- if we aren't waiting we are calculating
-            return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
-                                'done': request.session.get('done_loading')})
-        except TypeError:
+            return JsonResponse({'loading_msg': request.session.get(session_id+'loading_msg'), 'error_text': 'None',
+                                'done': request.session.get(session_id+'done_loading')})
+        except TypeError as t:
+            LOGGER.debug(t)
             return JsonResponse({'loading_msg': '-', 'error_text': 'None',
-                                 'done': True})
-
-    else:
-        request.session['loading_msg'] = "Processing"
-        request.session['done_loading'] = False
-        request.session.save()
+                                 'done': False})
 
     return render(
         request,
@@ -168,17 +165,14 @@ def loading(request):
 def player(request):
     if request.method == 'POST':
         # TODO: error Handling
-        try:
-            # --- get Session ----
-            session_id = json.loads(request.body.decode('utf-8'))['session']
 
-            return JsonResponse({'id': request.session.get('file_id'),
-                                 'error_text': 'None',
-                                 'harm': request.session.get('harmonic_postfix'),
-                                 'synt': request.session.get('synthesized_postfix')})
-        except TypeError:
-            return JsonResponse({'loading_msg': '-', 'error_text': 'None',
-                                 'done': True})
+        # --- get Session ----
+        session_id = json.loads(request.body.decode('utf-8'))['session']
+
+        return JsonResponse({'id': request.session.get(session_id+'file_id'),
+                             'error_text': 'None',
+                             'harm': request.session.get('harmonic_postfix'),
+                             'synt': request.session.get('synthesized_postfix')})
 
     return render(
         request,
@@ -196,28 +190,30 @@ def calculate(request):
 
         request.session['harmonic_postfix'] = '_harm'
         request.session['synthesized_postfix'] = '_synt'
+        request.session[session_id+'done_loading'] = False
         request.session.save()
 
         # --- control if another thread is processing our file ---
 
         try:
-            if request.session.get('file_in_progress'):
+            if request.session.get(session_id+'file_in_progress'):
 
-                request.session['loading_msg'] = "Waiting"
+                request.session[session_id+'loading_msg'] = "Waiting"
                 request.session.save()
-                return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                return JsonResponse({'loading_msg': request.session.get(session_id+'loading_msg'), 'error_text': 'None',
                                  'done': True})
         except TypeError:
-            request.session['done_loading'] = True
+            request.session[session_id+'done_loading'] = True
             request.session.save()
             return JsonResponse({'error_text': 'None'})
 
         # --- get all parameters ----
         # TODO: handle error message
         try:
-            fid = request.session.get('file_id')
-            madmom_mode = request.session.get('madmom_mode')
-            crnn_mode = request.session.get('CRNN_mode')
+            fid = request.session.get(session_id+'file_id')
+            madmom_mode = request.session.get(session_id+'madmom_mode')
+
+            crnn_mode = request.session.get(session_id+'CRNN_mode')
 
             base_dir = settings.BASE_DIR
             file_path = settings.WORKING_DIR
@@ -227,15 +223,15 @@ def calculate(request):
             synt_postfix = request.session.get('synthesized_postfix')
 
             sound_font_name = '241.SF2'
-        except TypeError:
-            request.session['done_loading'] = True
+        except TypeError as t:
+            request.session[session_id+'done_loading'] = True
             request.session.save()
             return JsonResponse({'error_text': 'None'})
 
         # ---- process the downloaded audio files with madmom ----
         # download made sure that everything is in .wav format
         # just to be sure maybe loading function does not get called for some reasons
-        request.session['loading_msg'] = "Processing"
+        request.session[session_id+'loading_msg'] = "Processing"
         request.session.save()
         madmom_file_str = file_path + fid
         madmom_input_file = madmom_file_str + '.wav'
@@ -255,7 +251,7 @@ def calculate(request):
         os.system(madmom_command_str)
 
         # ----  txt to midi ----
-        request.session['loading_msg'] = "Synthesizing"
+        request.session[session_id+'loading_msg'] = "Synthesizing"
         request.session.save()
         txt2midi_path = base_dir + '/midi2txt/midi2txt/txt_to_midi.py '
         # TODO: maybe add options here
@@ -279,7 +275,7 @@ def calculate(request):
         write(harmonic_output_file, fs, scaled)
 
         # ---- midi to wav ----
-        request.session['loading_msg'] = "Finalizing"
+        request.session[session_id+'loading_msg'] = "Finalizing"
         request.session.save()
 
         # TODO: control options
@@ -325,10 +321,10 @@ def calculate(request):
         j.close()
         MUTEX.release()
 
-        request.session['finished'] = True
-        request.session['done_loading'] = True
+        request.session[session_id+'finished'] = True
+        request.session[session_id+'done_loading'] = True
         request.session.save()
-    return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+    return JsonResponse({'loading_msg': request.session.get(session_id+'loading_msg'), 'error_text': 'None',
                          'done': True})
 
 
@@ -359,34 +355,36 @@ def make_json_error(error_msg):
 
 def control_file(id, request, session_id):
     file_path = settings.WORKING_DIR + 'all_files.txt'
-    fid = hashing(id, request)
-    session_id = '?session='+session_id
+    fid = hashing(id, request,session_id)
+    session_id_url = '?session='+session_id
 
-    request.session['file_in_progress'] = False
+    request.session[session_id+'file_in_progress'] = False
 
     if fid == "None":
-        return HttpResponseRedirect(reverse('loading')+session_id)
+        return HttpResponseRedirect(reverse('loading')+session_id_url)
     else:
         j = open(file_path, "r")
         data = json.load(j)
         j.close()
         for item in data:
+            LOGGER.debug(item["id"]+'\n'+ fid + '\n' + item["model"]+'\n'+request.session.get(session_id+'madmom_mode'))
             if item["id"] == fid:
-                if item["model"] == request.session.get('madmom_mode'):
-                    request.session['file_in_progress'] = True
+                if item["model"] == request.session.get(session_id+'madmom_mode'):
+                    request.session[session_id+'file_in_progress'] = True
                     os.remove(settings.WORKING_DIR+id+'.wav')
-                    request.session['file_id'] = fid
+                    request.session[session_id+'file_id'] = fid
+                    LOGGER.debug(request.session.get(session_id+'file_id'))
                     if item["finished"] == True:
-                        request.session['finished'] = True
-                        return HttpResponseRedirect(reverse('player')+session_id)
+                        request.session[session_id+'finished'] = True
+                        return HttpResponseRedirect(reverse('player')+session_id_url)
                     else:
-                        request.session['finished'] = False
-                        return HttpResponseRedirect(reverse('loading')+session_id)
+                        request.session[session_id+'finished'] = False
+                        return HttpResponseRedirect(reverse('loading')+session_id_url)
 
-        return HttpResponseRedirect(reverse('loading')+session_id)
+        return HttpResponseRedirect(reverse('loading')+session_id_url)
 
 
-def hashing(id, request):
+def hashing(id, request, session_id):
 
     h = hashlib.md5()
     file_path = settings.WORKING_DIR + 'all_files.txt'
@@ -396,7 +394,7 @@ def hashing(id, request):
         md = h.hexdigest()
         f.close()
 
-        json_d = {'id': id, 'finished': False, 'md': md, 'model': request.session.get('madmom_mode')}
+        json_d = {'id': id, 'finished': False, 'md': md, 'model': request.session.get(session_id+'madmom_mode')}
 
         try:
             j = open(file_path, "r")
@@ -412,7 +410,7 @@ def hashing(id, request):
             return "None"
 
         for item in data:
-            if item["md"] == md and item["model"] == request.session.get('madmom_mode'):
+            if item["md"] == md and item["model"] == request.session.get(session_id+'madmom_mode'):
                     return item["id"]
 
         data.append(json_d)
