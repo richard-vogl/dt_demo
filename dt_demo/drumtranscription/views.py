@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import logging
 import youtube_dl
+import hashlib
+import json
 import numpy as np
 
 import madmom.audio.signal as sig
@@ -14,6 +16,7 @@ from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from threading import Lock
 
 from .forms import *
 from .models import *
@@ -27,11 +30,14 @@ logging.basicConfig(
     level=logging.DEBUG,
 )
 
+MUTEX = Lock()
+
 
 def index(request):
     # Handle file upload
     if request.method == 'POST':
         if "youtubeform" in request.POST:
+
             file_input = DocumentForm()
             setting_input = SettingsForm()
             youtube_input = YoutubeForm(request.POST)
@@ -45,8 +51,11 @@ def index(request):
                 copyfile(settings.DOWNLOAD_DIR + fid + '.wav', settings.WORKING_DIR + fid + '.wav')
                 os.remove(settings.DOWNLOAD_DIR + fid + '.wav')
 
+                MUTEX.acquire()
+                output = control_file(fid, request)
+                MUTEX.release()
                 # Redirect to loading page
-                return HttpResponseRedirect(reverse('loading'))
+                return output
 
         if "fileform" in request.POST:
             file_input = DocumentForm(request.POST, request.FILES)
@@ -76,8 +85,11 @@ def index(request):
 
                 request.session['file_id'] = fid
 
+                MUTEX.acquire()
+                output = control_file(fid, request)
+                MUTEX.release()
                 # Redirect to loading page
-                return HttpResponseRedirect(reverse('loading'))
+                return output
 
         if "setting" in request.POST:
 
@@ -116,8 +128,23 @@ def index(request):
 
 def loading(request):
     if request.method == 'POST':
-        # TODO: error Handling
+        # --- we are waiting for another Thread to finish our file ---
+        file_path = settings.WORKING_DIR + 'all_files.txt'
         try:
+            if request.session.get('file_in_progress'):
+                MUTEX.acquire()
+                j = open(file_path, "r")
+                data = json.load(j)
+                j.close()
+                MUTEX.release()
+                for item in data:
+                    if item["id"] == request.session.get('file_id') and item["model"] == request.session.get('madmom_mode'):
+                        if item["finished"] == True:
+                            return JsonResponse(
+                                {'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                                 'done': True})
+
+            # --- if we aren't waiting we are calculating
             return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
                                 'done': request.session.get('done_loading')})
         except TypeError:
@@ -125,7 +152,6 @@ def loading(request):
                                  'done': True})
 
     else:
-        # TODO: set an interval Parameter in the JSONResponse for the loading msg checks
         request.session['loading_msg'] = "Processing"
         request.session['done_loading'] = False
         request.session.save()
@@ -155,13 +181,26 @@ def player(request):
 
 
 def calculate(request):
-    # TODO: ask if handling errors for os.system calls necessary
     if request.method == 'POST':
         # --- add session parameters ----
 
         request.session['harmonic_postfix'] = '_harm'
         request.session['synthesized_postfix'] = '_synt'
         request.session.save()
+
+        # --- control if another thread is processing our file ---
+
+        try:
+            if request.session.get('file_in_progress'):
+
+                request.session['loading_msg'] = "Waiting"
+                request.session.save()
+                return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
+                                 'done': True})
+        except TypeError:
+            request.session['done_loading'] = True
+            request.session.save()
+            return JsonResponse({'error_text': 'None'})
 
         # --- get all parameters ----
         # TODO: handle error message
@@ -262,6 +301,21 @@ def calculate(request):
 
         # ---- tell loading we are done ----
 
+        MUTEX.acquire()
+        j = open(file_path + "all_files.txt", "r")
+        data = json.load(j)
+        j.close()
+        for item in data:
+            if item["id"] == fid:
+                item["finished"] = True
+                break
+
+        j = open(file_path + "all_files.txt", "w")
+        json.dump(data, j, indent=4)
+        j.close()
+        MUTEX.release()
+
+        request.session['finished'] = True
         request.session['done_loading'] = True
         request.session.save()
     return JsonResponse({'loading_msg': request.session.get('loading_msg'), 'error_text': 'None',
@@ -291,3 +345,67 @@ def download_youtube(url):
 def make_json_error(error_msg):
     error = {'error': True, 'error_msg': error_msg}
     return error
+
+
+def control_file(id, request):
+    file_path = settings.WORKING_DIR + 'all_files.txt'
+    fid = hashing(id, request)
+
+    request.session['file_in_progress'] = False
+
+    if fid == "None":
+        return HttpResponseRedirect(reverse('loading'))
+    else:
+        j = open(file_path, "r")
+        data = json.load(j)
+        j.close()
+        for item in data:
+            if item["id"] == fid:
+                if item["model"] == request.session.get('madmom_mode'):
+                    request.session['file_in_progress'] = True
+                    os.remove(settings.WORKING_DIR+id+'.wav')
+                    request.session['file_id'] = fid
+                    if item["finished"] == True:
+                        request.session['finished'] = True
+                        return HttpResponseRedirect(reverse('player'))
+                    else:
+                        request.session['finished'] = False
+                        return HttpResponseRedirect(reverse('loading'))
+
+        return HttpResponseRedirect(reverse('loading'))
+
+
+def hashing(id, request):
+
+    h = hashlib.md5()
+    file_path = settings.WORKING_DIR + 'all_files.txt'
+
+    with open(settings.WORKING_DIR + id + '.wav', "rb") as f:
+        h.update(f.read())
+        md = h.hexdigest()
+        f.close()
+
+        json_d = {'id': id, 'finished': False, 'md': md, 'model': request.session.get('madmom_mode')}
+
+        try:
+            j = open(file_path, "r")
+            data = json.load(j)
+            j.close()
+        except (json.JSONDecodeError, FileNotFoundError):
+            # first time file is used
+            data = json.loads('[]')
+            data.append(json_d)
+            j = open(file_path, "w")
+            json.dump(data, j, indent=4)
+            j.close()
+            return "None"
+
+        for item in data:
+            if item["md"] == md and item["model"] == request.session.get('madmom_mode'):
+                    return item["id"]
+
+        data.append(json_d)
+        j = open(file_path, "w")
+        json.dump(data, j, indent=4)
+        j.close()
+        return "None"
