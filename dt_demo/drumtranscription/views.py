@@ -36,6 +36,7 @@ MUTEX = Lock()
 def index(request):
     # Handle file upload
     if request.method == 'POST':
+        session_id = str(uuid.uuid4())
         if "youtubeform" in request.POST:
 
             file_input = DocumentForm()
@@ -52,7 +53,7 @@ def index(request):
                 os.remove(settings.DOWNLOAD_DIR + fid + '.wav')
 
                 MUTEX.acquire()
-                output = control_file(fid, request)
+                output = control_file(fid, request, session_id)
                 MUTEX.release()
                 # Redirect to loading page
                 return output
@@ -86,7 +87,7 @@ def index(request):
                 request.session['file_id'] = fid
 
                 MUTEX.acquire()
-                output = control_file(fid, request)
+                output = control_file(fid, request, session_id)
                 MUTEX.release()
                 # Redirect to loading page
                 return output
@@ -131,6 +132,8 @@ def loading(request):
         # --- we are waiting for another Thread to finish our file ---
         file_path = settings.WORKING_DIR + 'all_files.txt'
         try:
+            session_id = json.loads(request.body.decode('utf-8'))['session']
+
             if request.session.get('file_in_progress'):
                 MUTEX.acquire()
                 j = open(file_path, "r")
@@ -166,6 +169,9 @@ def player(request):
     if request.method == 'POST':
         # TODO: error Handling
         try:
+            # --- get Session ----
+            session_id = json.loads(request.body.decode('utf-8'))['session']
+
             return JsonResponse({'id': request.session.get('file_id'),
                                  'error_text': 'None',
                                  'harm': request.session.get('harmonic_postfix'),
@@ -182,6 +188,10 @@ def player(request):
 
 def calculate(request):
     if request.method == 'POST':
+        # --- get session ---
+
+        session_id = json.loads(request.body.decode('utf-8'))['session']
+
         # --- add session parameters ----
 
         request.session['harmonic_postfix'] = '_harm'
@@ -347,14 +357,15 @@ def make_json_error(error_msg):
     return error
 
 
-def control_file(id, request):
+def control_file(id, request, session_id):
     file_path = settings.WORKING_DIR + 'all_files.txt'
     fid = hashing(id, request)
+    session_id = '?session='+session_id
 
     request.session['file_in_progress'] = False
 
     if fid == "None":
-        return HttpResponseRedirect(reverse('loading'))
+        return HttpResponseRedirect(reverse('loading')+session_id)
     else:
         j = open(file_path, "r")
         data = json.load(j)
@@ -367,12 +378,12 @@ def control_file(id, request):
                     request.session['file_id'] = fid
                     if item["finished"] == True:
                         request.session['finished'] = True
-                        return HttpResponseRedirect(reverse('player'))
+                        return HttpResponseRedirect(reverse('player')+session_id)
                     else:
                         request.session['finished'] = False
-                        return HttpResponseRedirect(reverse('loading'))
+                        return HttpResponseRedirect(reverse('loading')+session_id)
 
-        return HttpResponseRedirect(reverse('loading'))
+        return HttpResponseRedirect(reverse('loading')+session_id)
 
 
 def hashing(id, request):

@@ -13,6 +13,10 @@
 
 <script>
 
+    function getSessionID(){
+        var urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('session');
+}
     var dots = 1;
 
     // TODO: error handling
@@ -20,6 +24,8 @@
         $.ajax({  //Call ajax function sending the option loaded
             url: "calculate/",
             type: 'POST',
+            dataType: "JSON",
+            data:JSON.stringify({session:getSessionID()}),
             success: function (response) {
                 //just to make sure that the next function doesn't use an old response
             }
@@ -31,7 +37,8 @@
         $.ajax({  //Call ajax function sending the option loaded
             url: "",  //url of the view where you make the search
             type: 'POST',
-            dataType: "json",
+            dataType: "JSON",
+            data:JSON.stringify({session:getSessionID()}),
             success: function (response) {
 
                 if (response.error) { // If the function fails
@@ -43,6 +50,7 @@
                     }
                     if (response.done) {
                         var url = "{% url 'player' %}"
+                        url+="?session="+getSessionID()
                         document.location.href = url
                         return;
                     } else {
